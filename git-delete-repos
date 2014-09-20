@@ -1,0 +1,21 @@
+#! /bin/bash
+GIT_USER=$1
+GIT_PROJECT=$2
+GIT_REPOS_API="https://api.github.com/repos"
+if [ $# -lt 2 ];then
+    echo "Usage: $0 GIT_USER GIT_PROJECT"
+    exit 1
+fi
+echo "curl -X DELETE -u "$GIT_USER" ${GIT_REPOS_API}/${GIT_USER}/${GIT_PROJECT}"
+res=`curl -s -X DELETE -u "$GIT_USER" ${GIT_REPOS_API}/${GIT_USER}/${GIT_PROJECT}`
+
+#echo $res | python -c 'import json,sys;obj=json.load(sys.stdin);print obj.has_key("message") and obj.has_key("documentation_url") and exit(1) or exit(0)'
+
+if [ "$res" == "" ];then
+    echo 'git remote delete repos success'
+    exit 0
+else
+    echo $res
+    echo 'git remote delete repos failed'
+    exit 1
+fi

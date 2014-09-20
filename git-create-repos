@@ -1,0 +1,40 @@
+#! /bin/bash
+GIT_USER=$1
+GIT_PROJECT=$2
+GIT_HUB="https://github.com"
+GIT_REPOS_API="https://api.github.com/user/repos"
+GIT_PATH="$GIT_HUB/$GIT_USER"
+GIT_REPOS="$GIT_HUB/$GIT_USER/$GIT_PROJECT.git"
+
+if [ $# -lt 2 ];then
+    echo "Usage: $0 GIT_USER GIT_PROJECT"
+    exit 1
+fi
+
+postdata=`cat << EOF
+{"name":"$GIT_PROJECT","auto_init":true,"gitignore_template":"Java","license_template":"mit","description":"This is $GIT_PROJECT repository","homepage":"http://$GIT_PROJECT.iamxieyi.com"}
+EOF
+`
+echo "curl -s -u '$GIT_USER' -d '$postdata' $GIT_REPOS_API";
+res=`curl -s -u "$GIT_USER" -d "$postdata" $GIT_REPOS_API`
+echo $res | python -c 'import json,sys;obj=json.load(sys.stdin);print obj.has_key("message") and obj.has_key("documentation_url") and exit(1) or exit(0)'
+
+if [ $? -ne 0 ];then
+    echo $res
+    echo 'git remote create repos failed'
+    exit 1
+else
+    echo 'git remote create repos success'
+fi
+
+mkdir ${GIT_PROJECT};
+cd ${GIT_PROJECT}
+echo "git init"
+git init 
+echo "git remote add origin ${GIT_REPOS}"
+git remote add origin ${GIT_REPOS}
+echo "git pull origin master"
+git pull origin master
+echo "git push --set-upstream origin master"
+git push --set-upstream origin master
+cd ..
